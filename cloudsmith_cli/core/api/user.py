@@ -28,6 +28,22 @@ def get_user_token(login, password):
     return data.token
 
 
+def create_user_token_saml() -> dict:
+    """Create a new user API token using SAML."""
+    client = get_api_client(BaseApi)
+
+    with catch_raise_api_exception():
+        data, _, headers = client.api_client.call_api(
+            "/user/tokens/",
+            "POST",
+            auth_settings=["apikey"],
+            response_type="object",
+        )
+
+    ratelimits.maybe_rate_limit(client, headers)
+    return data
+
+
 def get_user_brief():
     """Retrieve brief for current user (if any)."""
     client = get_user_api()
