@@ -4,7 +4,7 @@ import cloudsmith_api
 
 from .. import ratelimits
 from .exceptions import catch_raise_api_exception
-from .init import get_api_client, unset_api_key
+from .init import BaseApi, get_api_client, unset_api_key
 
 
 def get_user_api():
@@ -37,3 +37,35 @@ def get_user_brief():
 
     ratelimits.maybe_rate_limit(client, headers)
     return data.authenticated, data.slug, data.email, data.name
+
+
+def list_user_tokens() -> list[dict]:
+    """List all user API tokens."""
+    client = get_api_client(BaseApi)
+
+    with catch_raise_api_exception():
+        data, _, headers = client.api_client.call_api(
+            "/user/tokens/",
+            "GET",
+            auth_settings=["apikey", "basic"],
+            response_type="object",
+        )
+
+    ratelimits.maybe_rate_limit(client, headers)
+    return data["results"]
+
+
+def refresh_user_token(token_slug: str) -> dict:
+    """Refresh user API token."""
+    client = get_api_client(BaseApi)
+
+    with catch_raise_api_exception():
+        data, _, headers = client.api_client.call_api(
+            f"/user/tokens/{token_slug}/refresh/",
+            "PUT",
+            auth_settings=["apikey", "basic"],
+            response_type="object",
+        )
+
+    ratelimits.maybe_rate_limit(client, headers)
+    return data
